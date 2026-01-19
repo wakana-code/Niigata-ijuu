@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新潟移住マッチング | NIIGATA LIFE</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Noto Sans JP', sans-serif; }
+        
+        :root {
+            --niigata-blue: #1e40af;
+            --niigata-light-blue: #3b82f6;
+            --niigata-snow: #f8fafc;
+            --niigata-gold: #d97706;
+            --niigata-green: #15803d;
+        }
+        
+        .gradient-niigata {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #0ea5e9 100%);
+        }
+        
+        .text-shadow { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .snow-pattern {
+            background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        
+        /* Game styles */
+        #gameCanvas {
+            background: linear-gradient(180deg, #0369a1 0%, #0284c7 50%, #0ea5e9 100%);
+        }
+        
+        .wave-animation {
+            animation: wave 2s ease-in-out infinite;
+        }
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .river-flow {
+            animation: flow 1s linear infinite;
+        }
+        @keyframes flow {
+            from { background-position: 0 0; }
+            to { background-position: 0 50px; }
+        }
+        
+        .pulse-gold {
+            animation: pulseGold 2s ease-in-out infinite;
+        }
+        @keyframes pulseGold {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); }
+            50% { box-shadow: 0 0 20px 10px rgba(217, 119, 6, 0.2); }
+        }
+
+        .scroll-hidden::-webkit-scrollbar { display: none; }
+        .scroll-hidden { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-niigata text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <a href="#" onclick="showPage('home')" class="flex items-center space-x-2">
+                    <span class="text-2xl">🌾</span>
+                    <span class="font-bold text-xl">NIIGATA LIFE</span>
+                </a>
+                
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#" onclick="showPage('home')" class="hover:text-amber-300 transition">ホーム</a>
+                    <a href="#" onclick="showPage('matching')" class="hover:text-amber-300 transition">マッチング診断</a>
+                    <a href="#" onclick="showPage('cities')" class="hover:text-amber-300 transition">市町村一覧</a>
+                    <a href="#" onclick="showPage('about')" class="hover:text-amber-300 transition">新潟について</a>
+                    <button onclick="startGame()" class="bg-amber-500 hover:bg-amber-600 px-4 py-1 rounded-full font-medium transition pulse-gold">
+                        🚣 ミニゲーム
+                    </button>
+                </nav>
+                
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden text-2xl">☰</button>
+            </div>
+        </div>
+        
+        <!-- Mobile Nav -->
+        <div id="mobileMenu" class="hidden md:hidden bg-blue-900 pb-4">
+            <a href="#" onclick="showPage('home'); toggleMobileMenu()" class="block px-4 py-2 hover:bg-blue-800">ホーム</a>
+            <a href="#" onclick="showPage('matching'); toggleMobileMenu()" class="block px-4 py-2 hover:bg-blue-800">マッチング診断</a>
+            <a href="#" onclick="showPage('cities'); toggleMobileMenu()" class="block px-4 py-2 hover:bg-blue-800">市町村一覧</a>
+            <a href="#" onclick="showPage('about'); toggleMobileMenu()" class="block px-4 py-2 hover:bg-blue-800">新潟について</a>
+            <button onclick="startGame(); toggleMobileMenu()" class="mx-4 mt-2 bg-amber-500 px-4 py-2 rounded-full w-[calc(100%-2rem)]">
+                🚣 ミニゲーム
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="mainContent">
+        <!-- Home Page -->
+        <div id="homePage" class="page">
+            <!-- Hero Section -->
+            <section class="relative h-[70vh] min-h-[500px] gradient-niigata overflow-hidden">
+                <div class="absolute inset-0 snow-pattern opacity-10"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center text-white px-4 fade-in">
+                        <h1 class="text-4xl md:text-6xl font-bold mb-4 text-shadow">
+                            新潟で、<br class="md:hidden">新しい暮らしを。
+                        </h1>
+                        <p class="text-xl md:text-2xl mb-8 opacity-90">
+                            雪国の温もり、日本海の恵み、豊かな自然があなたを待っています
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button onclick="showPage('matching')" class="bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-full text-lg font-bold transition transform hover:scale-105 shadow-lg">
+                                🎯 移住先診断をはじめる
+                            </button>
+                            <button onclick="showPage('cities')" class="bg-white/20 hover:bg-white/30 backdrop-blur text-white px-8 py-4 rounded-full text-lg font-medium transition border border-white/30">
+                                📍 市町村を探す
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-slate-50 to-transparent"></div>
+            </section>
+            
+            <!-- Features Section -->
+            <section class="py-16 px-4 max-w-7xl mx-auto">
+                <h2 class="text-3xl font-bold text-center mb-12 text-blue-900">新潟移住の魅力</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg card-hover text-center">
+                        <div class="text-5xl mb-4">🌊</div>
+                        <h3 class="text-xl font-bold text-blue-900 mb-3">日本海の恵み</h3>
+                        <p class="text-gray-600">新鮮な海の幸と美しい夕日。海沿いの暮らしで心豊かな毎日を。</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-8 shadow-lg card-hover text-center">
+                        <div class="text-5xl mb-4">🏔️</div>
+                        <h3 class="text-xl font-bold text-blue-900 mb-3">雄大な自然</h3>
+                        <p class="text-gray-600">越後山脈に抱かれた豊かな自然。四季折々の美しさを堪能できます。</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-8 shadow-lg card-hover text-center">
+                        <div class="text-5xl mb-4">🍚</div>
+                        <h3 class="text-xl font-bold text-blue-900 mb-3">食の王国</h3>
+                        <p class="text-gray-600">コシヒカリ、日本酒、へぎそば。日本一の米どころで美食三昧。</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Popular Cities -->
+            <section class="py-16 px-4 bg-gradient-to-b from-blue-50 to-white">
+                <div class="max-w-7xl mx-auto">
+                    <h2 class="text-3xl font-bold text-center mb-12 text-blue-900">人気の移住先</h2>
+                    <div id="popularCities" class="grid md:grid-cols-4 gap-6"></div>
+                    <div class="text-center mt-8">
+                        <button onclick="showPage('cities')" class="text-blue-600 hover:text-blue-800 font-medium">
+                            すべての市町村を見る →
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Matching Page -->
+        <div id="matchingPage" class="page hidden">
+            <div class="max-w-3xl mx-auto px-4 py-12">
+                <div id="quizContainer">
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-blue-900 mb-4">🎯 移住先マッチング診断</h1>
+                        <p class="text-gray-600">8つの質問に答えて、あなたにぴったりの移住先を見つけましょう！</p>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="mb-8">
+                        <div class="flex justify-between text-sm text-gray-500 mb-2">
+                            <span>質問 <span id="currentQ">1</span> / 8</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
+                            <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Question Area -->
+                    <div id="questionArea" class="bg-white rounded-2xl shadow-xl p-8 fade-in"></div>
+                </div>
+                
+                <!-- Results Area -->
+                <div id="resultsArea" class="hidden"></div>
+            </div>
+        </div>
+        
+        <!-- Cities Page -->
+        <div id="citiesPage" class="page hidden">
+            <div class="max-w-7xl mx-auto px-4 py-12">
+                <h1 class="text-3xl font-bold text-center text-blue-900 mb-4">📍 新潟県 市町村一覧</h1>
+                <p class="text-center text-gray-600 mb-8">あなたの新しい故郷を見つけてください</p>
+                
+                <!-- Filter -->
+                <div class="flex flex-wrap justify-center gap-2 mb-8">
+                    <button onclick="filterCities('all')" class="filter-btn px-4 py-2 rounded-full bg-blue-600 text-white">すべて</button>
+                    <button onclick="filterCities('sea')" class="filter-btn px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300">海沿い</button>
+                    <button onclick="filterCities('mountain')" class="filter-btn px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300">山間部</button>
+                    <button onclick="filterCities('urban')" class="filter-btn px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300">市街地</button>
+                    <button onclick="filterCities('childcare')" class="filter-btn px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300">子育て</button>
+                </div>
+                
+                <div id="citiesGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </div>
+        </div>
+        
+        <!-- City Detail Page -->
+        <div id="cityDetailPage" class="page hidden">
+            <div id="cityDetailContent"></div>
+        </div>
+        
+        <!-- About Page -->
+        <div id="aboutPage" class="page hidden">
+            <div class="max-w-4xl mx-auto px-4 py-12">
+                <h1 class="text-3xl font-bold text-center text-blue-900 mb-8">🌾 新潟県について</h1>
+                
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
+                    <div class="h-64 gradient-niigata flex items-center justify-center">
+                        <span class="text-8xl">🗾</span>
+                    </div>
+                    <div class="p-8">
+                        <h2 class="text-2xl font-bold text-blue-900 mb-4">日本海に面した豊かな県</h2>
+                        <p class="text-gray-700 leading-relaxed mb-6">
+                            新潟県は本州の日本海側に位置し、日本一の米どころとして知られています。
+                            県内には信濃川をはじめとする豊かな水系が流れ、肥沃な越後平野が広がります。
+                            冬は豪雪地帯として知られますが、その雪解け水が美味しいお米と日本酒を育みます。
+                        </p>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-blue-50 rounded-xl p-6">
+                                <h3 class="font-bold text-blue-900 mb-3">📊 基本データ</h3>
+                                <ul class="space-y-2 text-gray-700">
+                                    <li>👥 人口：約215万人</li>
+                                    <li>📐 面積：12,584 km²</li>
+                                    <li>🏛️ 県庁所在地：新潟市</li>
+                                    <li>🌡️ 気候：日本海側気候</li>
+                                </ul>
+                            </div>
+                            <div class="bg-amber-50 rounded-xl p-6">
+                                <h3 class="font-bold text-amber-900 mb-3">✨ 特産品</h3>
+                                <ul class="space-y-2 text-gray-700">
+                                    <li>🍚 コシヒカリ</li>
+                                    <li>🍶 日本酒（90以上の酒蔵）</li>
+                                    <li>🍜 へぎそば</li>
+                                    <li>🦀 紅ズワイガニ</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-2xl shadow-xl p-8">
+                    <h2 class="text-2xl font-bold text-blue-900 mb-6">🏠 移住支援制度</h2>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <h3 class="font-bold text-gray-800">移住支援金</h3>
+                            <p class="text-gray-600">東京23区から移住の場合、最大100万円（世帯の場合）の支援金</p>
+                        </div>
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h3 class="font-bold text-gray-800">住宅支援</h3>
+                            <p class="text-gray-600">空き家バンク制度、住宅取得補助金など市町村ごとの支援</p>
+                        </div>
+                        <div class="border-l-4 border-amber-500 pl-4">
+                            <h3 class="font-bold text-gray-800">就業支援</h3>
+                            <p class="text-gray-600">UIターン者向け就職マッチング、起業支援制度</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Game Overlay -->
+    <div id="gameOverlay" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl max-w-lg w-full mx-4 overflow-hidden shadow-2xl">
+            <div class="gradient-niigata text-white p-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold">🚣 信濃川下り</h2>
+                <button onclick="closeGame()" class="text-2xl hover:text-amber-300">&times;</button>
+            </div>
+            
+            <div id="gameStart" class="p-8 text-center">
+                <div class="text-6xl mb-4">🛶</div>
+                <h3 class="text-2xl font-bold text-blue-900 mb-4">信濃川下りゲーム</h3>
+                <p class="text-gray-600 mb-6">
+                    舟を操作して岩を避けながら、宝箱を集めよう！<br>
+                    宝箱を取ると新潟の市町村が紹介されるよ！
+                </p>
+                <p class="text-sm text-gray-500 mb-4">
+                    操作：← → キー または 画面左右タップ
+                </p>
+                <button onclick="beginGame()" class="bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-full font-bold text-lg transition">
+                    スタート！
+                </button>
+            </div>
+            
+            <div id="gamePlay" class="hidden">
+                <div class="p-2 bg-gray-100 flex justify-between items-center">
+                    <span class="font-bold text-blue-900">スコア: <span id="gameScore">0</span></span>
+                    <span class="text-gray-600">🎁 <span id="treasureCount">0</span></span>
+                </div>
+                <canvas id="gameCanvas" width="400" height="500" class="w-full cursor-pointer"></canvas>
+            </div>
+            
+            <div id="gameOver" class="hidden p-8 text-center">
+                <h3 class="text-2xl font-bold text-blue-900 mb-2">ゲームオーバー！</h3>
+                <p class="text-4xl font-bold text-amber-500 mb-4" id="finalScore">0点</p>
+                <p class="text-gray-600 mb-6">発見した市町村: <span id="discoveredCities">0</span>件</p>
+                <div class="flex gap-4 justify-center">
+                    <button onclick="beginGame()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full transition">
+                        もう一度
+                    </button>
+                    <button onclick="closeGame()" class="bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-full transition">
+                        閉じる
+                    </button>
+                </div>
+                <div id="discoveredList" class="mt-6 text-left max-h-40 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- City Popup (for game) -->
+    <div id="cityPopup" class="fixed inset-0 bg-black/70 z-[60] hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl max-w-sm w-full mx-4 overflow-hidden shadow-2xl fade-in">
+            <div class="h-40 bg-gradient-to-br from-blue-400 to-cyan-300 flex items-center justify-center">
+                <span id="popupEmoji" class="text-7xl"></span>
+            </div>
+            <div class="p-6 text-center">
+                <h3 id="popupCityName" class="text-2xl font-bold text-blue-900 mb-2"></h3>
+                <p id="popupCityDesc" class="text-gray-600 mb-4"></p>
+                <button onclick="closeCityPopup()" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-full transition">
+                    続ける
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 mt-16">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">🌾 NIIGATA LIFE</h3>
+                    <p class="text-gray-400">新潟県への移住を応援する情報サイトです。</p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">コンテンツ</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" onclick="showPage('matching')" class="hover:text-white">マッチング診断</a></li>
+                        <li><a href="#" onclick="showPage('cities')" class="hover:text-white">市町村一覧</a></li>
+                        <li><a href="#" onclick="showPage('about')" class="hover:text-white">新潟について</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">お役立ちリンク</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>新潟県公式HP</li>
+                        <li>移住支援センター</li>
+                        <li>ハローワーク新潟</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">お問い合わせ</h4>
+                    <p class="text-gray-400">info@niigata-life.example.com</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+                <p>© 2024 NIIGATA LIFE. このサイトはデモ用です。</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ========== City Data ==========
+        const cities = [
+            {
+                id: 1,
+                name: "新潟市",
+                catchphrase: "政令指定都市の利便性と自然が共存",
+                description: "新潟県の県庁所在地。日本海側最大の都市として、都市機能と豊かな自然が調和しています。信濃川が流れる美しい街並みと、活気ある商業エリアが魅力です。",
+                rent: "5.5万円",
+                population: "約78万人",
+                tags: ["urban", "sea", "childcare"],
+                emoji: "🏙️",
+                access: "東京から上越新幹線で約2時間",
+                climate: "日本海側気候、冬は雪が多い",
+                features: ["新幹線停車駅", "空港あり", "商業施設充実", "医療機関多数"],
+                support: ["移住支援金最大100万円", "子育て世帯向け住宅補助", "創業支援制度"],
+                gallery: ["🌆", "🌉", "🎭"]
+            },
+            {
+                id: 2,
+                name: "長岡市",
+                catchphrase: "花火と歴史の城下町",
+                description: "日本三大花火の一つ「長岡まつり大花火大会」で有名。工業都市としての発展と、歴史ある城下町の風情を併せ持つ魅力的な都市です。",
+                rent: "4.8万円",
+                population: "約26万人",
+                tags: ["urban", "mountain", "childcare"],
+                emoji: "🎆",
+                access: "東京から上越新幹線で約1時間40分",
+                climate: "豪雪地帯、夏は比較的涼しい",
+                features: ["新幹線停車駅", "長岡技術科学大学", "アオーレ長岡"],
+                support: ["移住支援金", "空き家改修補助", "起業支援"],
+                gallery: ["🎆", "🏯", "🎓"]
+            },
+            {
+                id: 3,
+                name: "上越市",
+                catchphrase: "上杉謙信公ゆかりの歴史都市",
+                description: "戦国武将・上杉謙信公の居城「春日山城」がある歴史の街。日本海に面し、スキーリゾートも近い、自然と歴史が融合した都市です。",
+                rent: "4.5万円",
+                population: "約18万人",
+                tags: ["urban", "sea", "mountain"],
+                emoji: "⚔️",
+                access: "東京から北陸新幹線で約2時間",
+                climate: "豪雪地帯、海洋性気候の影響も",
+                features: ["北陸新幹線停車", "春日山城跡", "直江津港"],
+                support: ["UIターン支援金", "農業研修制度", "住宅取得支援"],
+                gallery: ["🏯", "⛷️", "🌊"]
+            },
+            {
+                id: 4,
+                name: "柏崎市",
+                catchphrase: "日本海の夕日と海水浴の街",
+                description: "美しい海岸線と豊かな自然に恵まれた街。夏は海水浴客で賑わい、冬は日本海の荒波が迫力満点。ぎおん柏崎まつりの花火も有名です。",
+                rent: "4.2万円",
+                population: "約8万人",
+                tags: ["sea", "childcare"],
+                emoji: "🏖️",
+                access: "東京から上越新幹線＋在来線で約3時間",
+                climate: "日本海側気候、夏は海風が心地よい",
+                features: ["海水浴場多数", "柏崎刈羽原子力発電所", "えんま市"],
+                support: ["移住体験住宅", "子育て支援充実", "空き家バンク"],
+                gallery: ["🌅", "🏖️", "🎆"]
+            },
+            {
+                id: 5,
+                name: "佐渡市",
+                catchphrase: "トキ舞う黄金の島",
+                description: "日本海最大の島・佐渡島全域を占める市。世界遺産候補の金山、トキの野生復帰、伝統芸能など、独自の文化と自然が息づく特別な場所です。",
+                rent: "3.8万円",
+                population: "約5万人",
+                tags: ["sea", "mountain", "nature"],
+                emoji: "🦅",
+                access: "新潟港からジェットフォイルで約1時間",
+                climate: "海洋性気候、本土より温暖",
+                features: ["世界遺産候補・佐渡金山", "トキの森公園", "能・鬼太鼓"],
+                support: ["島暮らし体験", "移住支援金", "就農支援充実"],
+                gallery: ["🦅", "⛏️", "🥁"]
+            },
+            {
+                id: 6,
+                name: "妙高市",
+                catchphrase: "妙高山麓のリゾートタウン",
+                description: "妙高山の麓に広がるリゾート地。冬はスキー、夏は登山やトレッキングが楽しめます。温泉も豊富で、四季を通じてアウトドアを満喫できます。",
+                rent: "4.0万円",
+                population: "約3万人",
+                tags: ["mountain", "nature", "outdoor"],
+                emoji: "⛷️",
+                access: "東京から北陸新幹線で約2時間",
+                climate: "豪雪地帯、夏は避暑地として快適",
+                features: ["妙高高原スキー場", "赤倉温泉", "苗名滝"],
+                support: ["移住定住促進補助金", "スキーシーズン雇用", "子育て支援"],
+                gallery: ["⛷️", "♨️", "🏔️"]
+            },
+            {
+                id: 7,
+                name: "糸魚川市",
+                catchphrase: "ヒスイと大地の神秘",
+                description: "日本初のユネスコ世界ジオパーク認定地。ヒスイの産地として知られ、フォッサマグナなど地質学的に貴重な自然が広がります。",
+                rent: "4.0万円",
+                population: "約4万人",
+                tags: ["sea", "mountain", "nature"],
+                emoji: "💎",
+                access: "東京から北陸新幹線で約2時間15分",
+                climate: "日本海側気候、山間部は豪雪",
+                features: ["フォッサマグナミュージアム", "ヒスイ海岸", "親不知"],
+                support: ["移住支援金", "空き家リノベ補助", "漁業研修"],
+                gallery: ["💎", "🌊", "🏔️"]
+            },
+            {
+                id: 8,
+                name: "十日町市",
+                catchphrase: "大地の芸術祭の里",
+                description: "世界最大規模の国際芸術祭「大地の芸術祭」の舞台。棚田や里山の美しい景観と、現代アートが融合する独特の文化圏を形成しています。",
+                rent: "4.2万円",
+                population: "約5万人",
+                tags: ["mountain", "nature", "culture"],
+                emoji: "🎨",
+                access: "東京から上越新幹線＋ほくほく線で約2時間",
+                climate: "日本有数の豪雪地帯",
+                features: ["大地の芸術祭", "星峠の棚田", "十日町雪まつり"],
+                support: ["芸術祭関連雇用", "農業支援", "雪国暮らし体験"],
+                gallery: ["🎨", "🌾", "❄️"]
+            },
+            {
+                id: 9,
+                name: "南魚沼市",
+                catchphrase: "コシヒカリ発祥の地",
+                description: "日本一のブランド米「魚沼産コシヒカリ」の中心産地。豊かな雪解け水が育む最高品質のお米と、スキーリゾートが魅力です。",
+                rent: "4.3万円",
+                population: "約5.5万人",
+                tags: ["mountain", "nature", "outdoor", "gourmet"],
+                emoji: "🍚",
+                access: "東京から上越新幹線で約1時間20分",
+                climate: "日本有数の豪雪地帯",
+                features: ["魚沼産コシヒカリ", "GALA湯沢スキー場", "雲洞庵"],
+                support: ["農業研修制度", "移住支援金", "住宅補助"],
+                gallery: ["🍚", "⛷️", "🏔️"]
+            },
+            {
+                id: 10,
+                name: "燕市",
+                catchphrase: "ものづくりの街",
+                description: "金属加工・洋食器製造で世界的に知られる産業都市。職人技術が息づく街で、自分も「ものづくり」に携わる暮らしができます。",
+                rent: "4.5万円",
+                population: "約7.7万人",
+                tags: ["urban", "culture"],
+                emoji: "🔧",
+                access: "東京から上越新幹線で約2時間（燕三条駅）",
+                climate: "日本海側気候",
+                features: ["燕三条ものづくりの町", "職人体験", "道の駅 燕三条"],
+                support: ["創業支援", "技術習得支援", "移住支援金"],
+                gallery: ["🔧", "🍴", "🏭"]
+            },
+            {
+                id: 11,
+                name: "三条市",
+                catchphrase: "刃物と金属加工のまち",
+                description: "古くから刃物や金属加工で栄えた職人の街。燕市と合わせて「燕三条」として全国に知られ、ものづくり文化が根付いています。",
+                rent: "4.3万円",
+                population: "約9.5万人",
+                tags: ["urban", "culture", "childcare"],
+                emoji: "🔨",
+                access: "東京から上越新幹線で約2時間（燕三条駅）",
+                climate: "日本海側気候",
+                features: ["三条鍛冶道場", "スノーピーク本社", "八木ヶ鼻"],
+                support: ["ものづくり創業支援", "子育て支援充実", "移住支援金"],
+                gallery: ["🔨", "⛺", "🏞️"]
+            },
+            {
+                id: 12,
+                name: "村上市",
+                catchphrase: "鮭と城下町文化の継承地",
+                description: "鮭文化と城下町の風情が残る北限の茶処。伝統的な町屋が立ち並ぶ街並みと、日本海の絶景が楽しめる瀬波温泉が魅力です。",
+                rent: "3.9万円",
+                population: "約5.8万人",
+                tags: ["sea", "culture", "gourmet"],
+                emoji: "🐟",
+                access: "東京から上越新幹線＋在来線で約3時間",
+                climate: "日本海側気候、比較的温暖",
+                features: ["塩引き鮭", "瀬波温泉", "城下町の町屋"],
+                support: ["移住支援金", "空き家バンク", "漁業体験"],
+                gallery: ["🐟", "♨️", "🏯"]
+            }
+        ];
+
+        // ========== Quiz Questions ==========
+        const questions = [
+            {
+                question: "どんな環境で暮らしたいですか？",
+                options: [
+                    { text: "🌊 海沿いで潮風を感じたい", value: "sea" },
+                    { text: "🏔️ 山に囲まれた自然豊かな場所", value: "mountain" },
+                    { text: "🏙️ 便利な市街地がいい", value: "urban" },
+                    { text: "🌾 どこでも大丈夫", value: "any" }
+                ]
+            },
+            {
+                question: "最も重視する条件は？",
+                options: [
+                    { text: "💰 家賃の安さ", value: "rent" },
+                    { text: "🚃 交通の便利さ", value: "access" },
+                    { text: "🌳 自然環境", value: "nature" },
+                    { text: "👶 子育て環境", value: "childcare" }
+                ]
+            },
+            {
+                question: "休日は何をして過ごしたい？",
+                options: [
+                    { text: "⛷️ スキーや登山などアウトドア", value: "outdoor" },
+                    { text: "🎨 美術館や文化施設めぐり", value: "culture" },
+                    { text: "🍜 地元グルメの食べ歩き", value: "gourmet" },
+                    { text: "🏠 のんびり家で過ごす", value: "relax" }
+                ]
+            },
+            {
+                question: "希望する家賃帯は？",
+                options: [
+                    { text: "〜4万円", value: "rent1" },
+                    { text: "4〜5万円", value: "rent2" },
+                    { text: "5〜7万円", value: "rent3" },
+                    { text: "7万円〜", value: "rent4" }
+                ]
+            },
+            {
+                question: "雪に対する考えは？",
+                options: [
+                    { text: "❄️ 雪国暮らしを楽しみたい！", value: "snow_love" },
+                    { text: "⛄ 程々の雪なら大丈夫", value: "snow_ok" },
+                    { text: "☀️ できれば雪は少ない方がいい", value: "snow_less" }
+                ]
+            },
+            {
+                question: "東京へのアクセスは重要？",
+                options: [
+                    { text: "🚄 2時間以内がいい", value: "access_near" },
+                    { text: "🚃 3時間以内なら許容", value: "access_mid" },
+                    { text: "🏝️ 遠くても気にしない", value: "access_far" }
+                ]
+            },
+            {
+                question: "どんなコミュニティが理想？",
+                options: [
+                    { text: "👥 人との繋がりが強い地域", value: "community" },
+                    { text: "🏢 程よい距離感の都市部", value: "urban_life" },
+                    { text: "🌿 静かで落ち着いた環境", value: "quiet" }
+                ]
+            },
+            {
+                question: "新潟といえば？",
+                options: [
+                    { text: "🍚 美味しいお米と日本酒！", value: "gourmet" },
+                    { text: "⛷️ スキー・スノボ天国！", value: "outdoor" },
+                    { text: "🌊 日本海の絶景！", value: "sea" },
+                    { text: "🎆 花火大会！", value: "culture" }
+                ]
+            }
+        ];
+
+        // ========== State ==========
+        let currentPage = 'home';
+        let currentQuestion = 0;
+        let answers = [];
+        let gameState = null;
+
+        // ========== Initialize ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            initComments();
+            renderPopularCities();
+            renderCitiesGrid();
+            showPage('home');
+        });
+
+        // ========== Navigation ==========
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(page + 'Page').classList.remove('hidden');
+            currentPage = page;
+            window.scrollTo(0, 0);
+            
+            if (page === 'matching') {
+                resetQuiz();
+            }
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        }
+
+        // ========== Home Page ==========
+        function renderPopularCities() {
+            const popular = cities.slice(0, 4);
+            const container = document.getElementById('popularCities');
+            container.innerHTML = popular.map(city => createCityCard(city)).join('');
+        }
+
+        // ========== Cities Page ==========
+        function renderCitiesGrid(filter = 'all') {
+            let filtered = cities;
+            if (filter !== 'all') {
+                filtered = cities.filter(c => c.tags.includes(filter));
+            }
+            document.getElementById('citiesGrid').innerHTML = filtered.map(city => createCityCard(city)).join('');
+        }
+
+        function createCityCard(city) {
+            return `
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover cursor-pointer" onclick="showCityDetail(${city.id})">
+                    <div class="h-40 gradient-niigata flex items-center justify-center">
+                        <span class="text-6xl">${city.emoji}</span>
+                    </div>
+                    <div class="p-5">
+                        <h3 class="text-xl font-bold text-blue-900 mb-1">${city.name}</h3>
+                        <p class="text-sm text-gray-500 mb-3">${city.catchphrase}</p>
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${city.tags.slice(0, 3).map(tag => `
+                                <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">${getTagLabel(tag)}</span>
+                            `).join('')}
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-600">
+                            <span>🏠 ${city.rent}</span>
+                            <span>👥 ${city.population}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getTagLabel(tag) {
+            const labels = {
+                sea: '海沿い', mountain: '山間部', urban: '市街地',
+                nature: '自然豊か', childcare: '子育て', outdoor: 'アウトドア',
+                culture: '文化', gourmet: 'グルメ'
+            };
+            return labels[tag] || tag;
+        }
+
+        function filterCities(filter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-gray-200');
+            });
+            event.target.classList.add('bg-blue-600', 'text-white');
+            event.target.classList.remove('bg-gray-200');
+            renderCitiesGrid(filter);
+        }
+
+        // ========== City Detail ==========
+        function showCityDetail(cityId) {
+            const city = cities.find(c => c.id === cityId);
+            if (!city) return;
+
+            const comments = getComments(cityId);
+            
+            document.getElementById('cityDetailContent').innerHTML = `
+                <div class="max-w-4xl mx-auto px-4 py-12 fade-in">
+                    <button onclick="showPage('cities')" class="text-blue-600 hover:text-blue-800 mb-6 inline-block">
+                        ← 一覧に戻る
+                    </button>
+                    
+                    <!-- Header -->
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
+                        <div class="h-64 gradient-niigata flex items-center justify-center relative">
+                            <span class="text-9xl">${city.emoji}</span>
+                        </div>
+                        <div class="p-8">
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                ${city.tags.map(tag => `
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">${getTagLabel(tag)}</span>
+                                `).join('')}
+                            </div>
+                            <h1 class="text-3xl font-bold text-blue-900 mb-2">${city.name}</h1>
+                            <p class="text-xl text-gray-600 mb-4">${city.catchphrase}</p>
+                            <p class="text-gray-700 leading-relaxed">${city.description}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Gallery -->
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        ${city.gallery.map(emoji => `
+                            <div class="h-32 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl flex items-center justify-center">
+                                <span class="text-5xl">${emoji}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <!-- Info Grid -->
+                    <div class="grid md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-blue-900 mb-4">📊 基本情報</h3>
+                            <ul class="space-y-3 text-gray-700">
+                                <li class="flex justify-between"><span>👥 人口</span><span class="font-medium">${city.population}</span></li>
+                                <li class="flex justify-between"><span>🏠 平均家賃</span><span class="font-medium">${city.rent}</span></li>
+                                <li class="flex justify-between"><span>🚃 アクセス</span><span class="font-medium text-right text-sm">${city.access}</span></li>
+                                <li class="flex justify-between"><span>🌡️ 気候</span><span class="font-medium text-right text-sm">${city.climate}</span></li>
+                            </ul>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-bold text-blue-900 mb-4">✨ 特徴・魅力</h3>
+                            <ul class="space-y-2">
+                                ${city.features.map(f => `<li class="flex items-center"><span class="text-amber-500 mr-2">★</span>${f}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Support -->
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 mb-8">
+                        <h3 class="text-lg font-bold text-green-800 mb-4">🏠 移住支援制度</h3>
+                        <ul class="space-y-2 text-gray-700">
+                            ${city.support.map(s => `<li class="flex items-start"><span class="text-green-500 mr-2">✓</span>${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                    
+                    <!-- Comments -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-blue-900 mb-4">💬 移住してみた感想</h3>
+                        
+                        <!-- Comment Form -->
+                        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                            <input type="text" id="commentName" placeholder="お名前（任意）" class="w-full mb-3 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            <textarea id="commentText" placeholder="感想を書いてください..." class="w-full mb-3 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none"></textarea>
+                            <button onclick="postComment(${city.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition">投稿する</button>
+                        </div>
+                        
+                        <!-- Comments List -->
+                        <div id="commentsList" class="space-y-4">
+                            ${comments.map(c => createCommentHTML(c)).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            showPage('cityDetail');
+        }
+
+        function createCommentHTML(comment) {
+            const isBot = comment.name === 'ガイドbot';
+            return `
+                <div class="border-l-4 ${isBot ? 'border-amber-400 bg-amber-50' : 'border-blue-400 bg-blue-50'} rounded-r-lg p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="${isBot ? 'bg-amber-500' : 'bg-blue-500'} text-white text-xs px-2 py-1 rounded-full">
+                            ${isBot ? '🤖 ' : '👤 '}${comment.name}
+                        </span>
+                        <span class="text-xs text-gray-500">${comment.date}</span>
+                    </div>
+                    <p class="text-gray-700">${comment.text}</p>
+                </div>
+            `;
+        }
+
+        // ========== Comments System ==========
+        function initComments() {
+            if (!localStorage.getItem('niigata_comments')) {
+                const initialComments = {};
+                cities.forEach(city => {
+                    initialComments[city.id] = [{
+                        name: 'ガイドbot',
+                        text: `【使用例】こんにちは！${city.name}に移住して3年目です。地域の方が温かく、${city.tags.includes('childcare') ? '子育てしやすい環境です。' : '暮らしやすい環境です。'}冬の雪かきは大変ですが、四季を感じられる暮らしが気に入っています！${city.tags.includes('gourmet') ? 'お米も日本酒も最高です🍚🍶' : ''}`,
+                        date: '2024/01/15'
+                    }];
+                });
+                localStorage.setItem('niigata_comments', JSON.stringify(initialComments));
+            }
+        }
+
+        function getComments(cityId) {
+            const comments = JSON.parse(localStorage.getItem('niigata_comments') || '{}');
+            return comments[cityId] || [];
+        }
+
+        function postComment(cityId) {
+            const name = document.getElementById('commentName').value.trim() || '匿名';
+            const text = document.getElementById('commentText').value.trim();
+            
+            if (!text) {
+                alert('感想を入力してください');
+                return;
+            }
+            
+            const comments = JSON.parse(localStorage.getItem('niigata_comments') || '{}');
+            if (!comments[cityId]) comments[cityId] = [];
+            
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getDate()).padStart(2,'0')}`;
+            
+            comments[cityId].unshift({
+                name: name,
+                text: text,
+                date: dateStr
+            });
+            
+            localStorage.setItem('niigata_comments', JSON.stringify(comments));
+            
+            document.getElementById('commentName').value = '';
+            document.getElementById('commentText').value = '';
+            document.getElementById('commentsList').innerHTML = comments[cityId].map(c => createCommentHTML(c)).join('');
+        }
+
+        // ========== Quiz System ==========
+        function resetQuiz() {
+            currentQuestion = 0;
+            answers = [];
+            document.getElementById('quizContainer').classList.remove('hidden');
+            document.getElementById('resultsArea').classList.add('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            const progress = ((currentQuestion) / questions.length) * 100;
+            
+            document.getElementById('currentQ').textContent = currentQuestion + 1;
+            document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            document.getElementById('questionArea').innerHTML = `
+                <h3 class="text-xl font-bold text-blue-900 mb-6">${q.question}</h3>
+                <div class="space-y-3">
+                    ${q.options.map((opt, i) => `
+                        <button onclick="selectAnswer('${opt.value}')" 
+                            class="w-full text-left px-6 py-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition font-medium">
+                            ${opt.text}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function selectAnswer(value) {
+            answers.push(value);
+            
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quizContainer').classList.add('hidden');
+            document.getElementById('resultsArea').classList.remove('hidden');
+            
+            const scores = calculateScores();
+            const topCities = scores.slice(0, 5);
+            
+            document.getElementById('resultsArea').innerHTML = `
+                <div class="text-center mb-8 fade-in">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h2 class="text-2xl font-bold text-blue-900 mb-2">診断結果</h2>
+                    <p class="text-gray-600">あなたにおすすめの移住先はこちら！</p>
+                </div>
+                
+                <div class="space-y-6">
+                    ${topCities.map((item, i) => `
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover cursor-pointer fade-in" 
+                            style="animation-delay: ${i * 0.1}s" onclick="showCityDetail(${item.city.id})">
+                            <div class="flex">
+                                <div class="w-32 h-32 gradient-niigata flex items-center justify-center flex-shrink-0">
+                                    <span class="text-5xl">${item.city.emoji}</span>
+                                </div>
+                                <div class="p-4 flex-grow">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="bg-amber-500 text-white text-sm px-2 py-0.5 rounded-full font-bold">${i + 1}位</span>
+                                        <span class="text-sm text-gray-500">マッチ度 ${item.score}%</span>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-blue-900">${item.city.name}</h3>
+                                    <p class="text-sm text-gray-600 mb-2">${item.city.catchphrase}</p>
+                                    <div class="flex gap-2 text-xs text-gray-500">
+                                        <span>🏠 ${item.city.rent}</span>
+                                        <span>🚃 ${item.city.access.split('で')[0]}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="text-center mt-8">
+                    <button onclick="resetQuiz()" class="text-blue-600 hover:text-blue-800 font-medium">
+                        もう一度診断する
+                    </button>
+                </div>
+            `;
+        }
+
+        function calculateScores() {
+            return cities.map(city => {
+                let score = 50;
+                
+                answers.forEach(ans => {
+                    if (city.tags.includes(ans)) score += 15;
+                    if (ans === 'any') score += 5;
+                    
+                    // Rent matching
+                    const rentNum = parseFloat(city.rent);
+                    if (ans === 'rent1' && rentNum < 4) score += 20;
+                    if (ans === 'rent2' && rentNum >= 4 && rentNum < 5) score += 20;
+                    if (ans === 'rent3' && rentNum >= 5 && rentNum < 7) score += 20;
+                    if (ans === 'rent4' && rentNum >= 7) score += 20;
+                    
+                    // Access matching
+                    if (ans === 'access_near' && city.access.includes('1時間')) score += 15;
+                    if (ans === 'access_mid' && !city.access.includes('ジェットフォイル')) score += 10;
+                    if (ans === 'access_far') score += 5;
+                    
+                    // Snow preference
+                    if (ans === 'snow_love' && city.climate.includes('豪雪')) score += 15;
+                    if (ans === 'snow_less' && !city.climate.includes('豪雪')) score += 15;
+                });
+                
+                return { city, score: Math.min(100, score) };
+            }).sort((a, b) => b.score - a.score);
+        }
+
+        // ========== Game System ==========
+        let gameLoop = null;
+        let discovered = [];
+        
+        function startGame() {
+            document.getElementById('gameOverlay').classList.remove('hidden');
+            document.getElementById('gameStart').classList.remove('hidden');
+            document.getElementById('gamePlay').classList.add('hidden');
+            document.getElementById('gameOver').classList.add('hidden');
+        }
+
+        function closeGame() {
+            document.getElementById('gameOverlay').classList.add('hidden');
+            if (gameLoop) {
+                cancelAnimationFrame(gameLoop);
+                gameLoop = null;
+            }
+        }
+
+        function beginGame() {
+            document.getElementById('gameStart').classList.add('hidden');
+            document.getElementById('gameOver').classList.add('hidden');
+            document.getElementById('gamePlay').classList.remove('hidden');
+            
+            discovered = [];
+            initGame();
+        }
+
+        function initGame() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Adjust canvas size
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            gameState = {
+                boat: { x: canvas.width / 2, y: canvas.height - 80, width: 40, height: 50 },
+                obstacles: [],
+                treasures: [],
+                score: 0,
+                treasureCount: 0,
+                speed: 3,
+                running: true,
+                keys: { left: false, right: false }
+            };
+            
+            // Controls
+            document.onkeydown = (e) => {
+                if (e.key === 'ArrowLeft') gameState.keys.left = true;
+                if (e.key === 'ArrowRight') gameState.keys.right = true;
+            };
+            document.onkeyup = (e) => {
+                if (e.key === 'ArrowLeft') gameState.keys.left = false;
+                if (e.key === 'ArrowRight') gameState.keys.right = false;
+            };
+            
+            // Touch controls
+            canvas.ontouchstart = (e) => {
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                if (x < canvas.width / 2) gameState.keys.left = true;
+                else gameState.keys.right = true;
+            };
+            canvas.ontouchend = () => {
+                gameState.keys.left = false;
+                gameState.keys.right = false;
+            };
+            
+            gameLoop = requestAnimationFrame(() => updateGame(canvas, ctx));
+        }
+
+        function updateGame(canvas, ctx) {
+            if (!gameState.running) return;
+            
+            const gs = gameState;
+            
+            // Move boat
+            if (gs.keys.left && gs.boat.x > 10) gs.boat.x -= 6;
+            if (gs.keys.right && gs.boat.x < canvas.width - gs.boat.width - 10) gs.boat.x += 6;
+            
+            // Spawn obstacles
+            if (Math.random() < 0.02) {
+                gs.obstacles.push({
+                    x: Math.random() * (canvas.width - 40),
+                    y: -40,
+                    width: 30 + Math.random() * 20,
+                    height: 30 + Math.random() * 20
+                });
+            }
+            
+            // Spawn treasures
+            if (Math.random() < 0.008) {
+                gs.treasures.push({
+                    x: Math.random() * (canvas.width - 30),
+                    y: -30,
+                    width: 30,
+                    height: 30
+                });
+            }
+            
+            // Update obstacles
+            gs.obstacles = gs.obstacles.filter(o => {
+                o.y += gs.speed;
+                return o.y < canvas.height;
+            });
+            
+            // Update treasures
+            gs.treasures = gs.treasures.filter(t => {
+                t.y += gs.speed * 0.8;
+                return t.y < canvas.height;
+            });
+            
+            // Collision with obstacles
+            for (let o of gs.obstacles) {
+                if (checkCollision(gs.boat, o)) {
+                    gameOver();
+                    return;
+                }
+            }
+            
+            // Collision with treasures
+            for (let i = gs.treasures.length - 1; i >= 0; i--) {
+                if (checkCollision(gs.boat, gs.treasures[i])) {
+                    gs.treasures.splice(i, 1);
+                    gs.treasureCount++;
+                    gs.score += 100;
+                    showRandomCity();
+                    return;
+                }
+            }
+            
+            // Increase score
+            gs.score += 1;
+            gs.speed = 3 + Math.floor(gs.score / 500) * 0.5;
+            
+            // Draw
+            drawGame(canvas, ctx);
+            
+            document.getElementById('gameScore').textContent = gs.score;
+            document.getElementById('treasureCount').textContent = gs.treasureCount;
+            
+            gameLoop = requestAnimationFrame(() => updateGame(canvas, ctx));
+        }
+
+        function drawGame(canvas, ctx) {
+            const gs = gameState;
+            
+            // Background with flowing water effect
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#0369a1');
+            gradient.addColorStop(0.5, '#0284c7');
+            gradient.addColorStop(1, '#0ea5e9');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Water lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 10; i++) {
+                const y = (Date.now() / 20 + i * 60) % canvas.height;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.bezierCurveTo(canvas.width/3, y-10, canvas.width*2/3, y+10, canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw obstacles (rocks)
+            gs.obstacles.forEach(o => {
+                ctx.fillStyle = '#4b5563';
+                ctx.beginPath();
+                ctx.ellipse(o.x + o.width/2, o.y + o.height/2, o.width/2, o.height/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#6b7280';
+                ctx.beginPath();
+                ctx.ellipse(o.x + o.width/2 - 5, o.y + o.height/2 - 5, o.width/4, o.height/4, 0, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw treasures
+            gs.treasures.forEach(t => {
+                ctx.font = '28px sans-serif';
+                ctx.fillText('🎁', t.x, t.y + 28);
+            });
+            
+            // Draw boat
+            ctx.font = '40px sans-serif';
+            ctx.fillText('🛶', gs.boat.x, gs.boat.y + 40);
+        }
+
+        function checkCollision(a, b) {
+            return a.x < b.x + b.width &&
+                   a.x + a.width > b.x &&
+                   a.y < b.y + b.height &&
+                   a.y + a.height > b.y;
+        }
+
+        function showRandomCity() {
+            gameState.running = false;
+            
+            const city = cities[Math.floor(Math.random() * cities.length)];
+            discovered.push(city);
+            
+            document.getElementById('popupEmoji').textContent = city.emoji;
+            document.getElementById('popupCityName').textContent = city.name;
+            document.getElementById('popupCityDesc').textContent = city.catchphrase + '　' + city.description.slice(0, 50) + '...';
+            document.getElementById('cityPopup').classList.remove('hidden');
+        }
+
+        function closeCityPopup() {
+            document.getElementById('cityPopup').classList.add('hidden');
+            gameState.running = true;
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            gameLoop = requestAnimationFrame(() => updateGame(canvas, ctx));
+        }
+
+        function gameOver() {
+            gameState.running = false;
+            document.getElementById('gamePlay').classList.add('hidden');
+            document.getElementById('gameOver').classList.remove('hidden');
+            document.getElementById('finalScore').textContent = gameState.score + '点';
+            document.getElementById('discoveredCities').textContent = discovered.length;
+            
+            if (discovered.length > 0) {
+                const uniqueCities = [...new Set(discovered.map(c => c.id))].map(id => cities.find(c => c.id === id));
+                document.getElementById('discoveredList').innerHTML = `
+                    <p class="text-sm text-gray-500 mb-2">発見した市町村：</p>
+                    ${uniqueCities.map(c => `
+                        <button onclick="closeGame(); showCityDetail(${c.id})" class="block w-full text-left px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded mb-1 text-sm">
+                            ${c.emoji} ${c.name}
+                        </button>
+                    `).join('')}
+                `;
+            } else {
+                document.getElementById('discoveredList').innerHTML = '';
+            }
+        }
+    </script>
+</body>
+</html>
